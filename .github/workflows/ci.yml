@@ -1,0 +1,120 @@
+name: Megaboom build tests
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  build-stage-target:
+    name: Build sample stage targets
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/antmicro/megaboom@sha256:134f2f3e44cb418446ba6279e2596b7d68bbb06bd1ed7a33186bd8ce9f814b1b
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        STAGE_TARGET: ["tag_array_64x184_generate_abstract", "L1MetadataArray_test_generate_abstract", "regfile_128x65_floorplan"]
+    env:
+      DEBIAN_FRONTEND: "noninteractive"
+    steps:
+      # Workaround for https://github.com/actions/runner/issues/863
+      - name: Override HOME env var
+        shell: bash
+        run: |
+          echo HOME=/root | sudo tee -a $GITHUB_ENV
+      - name: Print info
+        run: |
+          echo "USER: "$(whoami)
+          echo "PWD: "$(pwd)
+          ls -la
+          echo "HOME: "$HOME
+          cd ~/OpenROAD-flow-scripts
+          echo "OpenROAD-flow-scripts SHA: "$(git rev-parse HEAD)
+          source ./env.sh
+          yosys --version
+          openroad --version
+      - name: Checkout Megaboom
+        uses: actions/checkout@v4
+        with:
+          path: megaboom
+      - name: Clone bazel-orfs
+        uses: actions/checkout@v4
+        with:
+          repository: The-OpenROAD-Project/bazel-orfs
+          path: bazel-orfs
+      - name: query target
+        run: |
+          bazel query ${{ matrix.STAGE_TARGET }}
+          bazel query ${{ matrix.STAGE_TARGET }} --output=build
+        working-directory: megaboom
+      - name: build target
+        run: |
+          bazel build --subcommands --verbose_failures --sandbox_debug ${{ matrix.STAGE_TARGET }}
+        working-directory: megaboom
+
+  test-make-script-target:
+    name: Execute sample _make scripts
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/antmicro/megaboom@sha256:134f2f3e44cb418446ba6279e2596b7d68bbb06bd1ed7a33186bd8ce9f814b1b
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        CONFIG: [ { stage_target: "L1MetadataArray_test_floorplan", orfs_make_target: "do-floorplan" }, { stage_target: "L1MetadataArray_test_cts", orfs_make_target: "do-cts" } ]
+    env:
+      DEBIAN_FRONTEND: "noninteractive"
+    steps:
+      # Workaround for https://github.com/actions/runner/issues/863
+      - name: Override HOME env var
+        shell: bash
+        run: |
+          echo HOME=/root | sudo tee -a $GITHUB_ENV
+      - name: Print info
+        run: |
+          echo "USER: "$(whoami)
+          echo "PWD: "$(pwd)
+          ls -la
+          echo "HOME: "$HOME
+          cd ~/OpenROAD-flow-scripts
+          echo "OpenROAD-flow-scripts SHA: "$(git rev-parse HEAD)
+          source ./env.sh
+          yosys --version
+          openroad -version
+      - name: Checkout Megaboom
+        uses: actions/checkout@v4
+        with:
+          path: megaboom
+      - name: Clone bazel-orfs
+        uses: actions/checkout@v4
+        with:
+          repository: antmicro/bazel-orfs
+          path: bazel-orfs
+      - name: query stage target
+        run: |
+          bazel query ${{ matrix.CONFIG.stage_target }}
+          bazel query ${{ matrix.CONFIG.stage_target }} --output=build
+        working-directory: megaboom
+      - name: query make script target
+        run: |
+          bazel query ${{ matrix.CONFIG.stage_target }}_make
+          bazel query ${{ matrix.CONFIG.stage_target }}_make --output=build
+        working-directory: megaboom
+      - name: build make script
+        run: |
+          bazel build --subcommands --verbose_failures --sandbox_debug ${{ matrix.CONFIG.stage_target }}_make
+        working-directory: megaboom
+      - name: build stage target dependencies
+        run: |
+          bazel build $(bazel query "deps(${{ matrix.CONFIG.stage_target }}) except ${{ matrix.CONFIG.stage_target }}")
+        working-directory: megaboom
+      - name: run make script
+        run: |
+          ./bazel-bin/${{ matrix.CONFIG.stage_target }}_make ${{ matrix.CONFIG.orfs_make_target }}
+        working-directory: megaboom
