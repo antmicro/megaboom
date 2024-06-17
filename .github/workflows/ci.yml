@@ -167,6 +167,10 @@ jobs:
     env:
       DEBIAN_FRONTEND: "noninteractive"
     steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          swap-storage: false
       - name: Checkout bazel-orfs
         uses: actions/checkout@v4
       - name: Prepare credentials
@@ -177,4 +181,4 @@ jobs:
         env:
           SECRET_CACHE: ${{ secrets.CACHE_ADDRESS }}
         run: |
-          bazel build --remote_cache=$SECRET_CACHE --google_credentials=/tmp/bazel-build-cred.json --remote_cache_compression=true BoomTile_floorplan
+          bazel build --remote_cache=$SECRET_CACHE --google_credentials=/tmp/bazel-build-cred.json --remote_cache_compression=true BoomTile_synth
