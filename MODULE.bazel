@@ -8,7 +8,7 @@ bazel_dep(name = "bazel-orfs")
 git_override(
     module_name = "bazel-orfs",
     remote = "https://github.com/The-OpenROAD-Project/bazel-orfs.git",
-    commit = "72403c0ed232130a5ec23cb22c2c9608c03490e0",
+    commit = "7c93ec020bb1b9046ade27c63c27c21e8436c083",
 )
 
 # Read: https://github.com/The-OpenROAD-Project/bazel-orfs?tab=readme-ov-file#usage

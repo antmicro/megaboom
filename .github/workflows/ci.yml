@@ -173,6 +173,8 @@ jobs:
           swap-storage: false
       - name: Checkout bazel-orfs
         uses: actions/checkout@v4
+      - name: Load docker image
+        run: bazel run --subcommands --verbose_failures @bazel-orfs//:orfs_env
       - name: Prepare credentials
         env:
           SECRET_CRED: ${{ secrets.CACHE_CREDENTIALS }}
