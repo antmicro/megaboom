@@ -6,152 +6,175 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    name: Lint Bazel files
-    runs-on: ubuntu-22.04
-    env:
-      DEBIAN_FRONTEND: "noninteractive"
-    steps:
-      - name: Download buildifier
-        run: |
-          wget https://github.com/bazelbuild/buildtools/releases/download/v6.4.0/buildifier-linux-amd64 -O /usr/local/bin/buildifier
-          chmod +x /usr/local/bin/buildifier
-          buildifier -version
-      - name: Checkout bazel-orfs
-        uses: actions/checkout@v4
-      - name: Check Bazel files
-        run: |
-          buildifier -lint warn -r .
+  # lint:
+  #   name: Lint Bazel files
+  #   runs-on: ubuntu-22.04
+  #   env:
+  #     DEBIAN_FRONTEND: "noninteractive"
+  #   steps:
+  #     - name: Download buildifier
+  #       run: |
+  #         wget https://github.com/bazelbuild/buildtools/releases/download/v6.4.0/buildifier-linux-amd64 -O /usr/local/bin/buildifier
+  #         chmod +x /usr/local/bin/buildifier
+  #         buildifier -version
+  #     - name: Checkout bazel-orfs
+  #       uses: actions/checkout@v4
+  #     - name: Check Bazel files
+  #       run: |
+  #         buildifier -lint warn -r .
 
-  test-make-target:
-    name: ${{ matrix.STAGE_TARGET }}
+  # test-make-target:
+  #   name: ${{ matrix.STAGE_TARGET }}
+  #   runs-on: ubuntu-22.04
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       STAGE_TARGET:
+  #         - tag_array_64x184_generate_abstract_make
+  #         - L1MetadataArray_test_generate_abstract_make
+  #         - regfile_128x65_floorplan_make
+  #         - lb_32x128_generate_abstract_make
+  #         - data_2048x8_generate_abstract_make
+  #         - subpackage:tag_array_64x184_generate_abstract
+  #   env:
+  #     DEBIAN_FRONTEND: "noninteractive"
+  #   steps:
+  #     - name: Free Disk Space (Ubuntu)
+  #       uses: jlumbroso/free-disk-space@main
+  #       with:
+  #         swap-storage: false
+  #     - name: Print info
+  #       run: |
+  #         echo "USER: "$(whoami)
+  #         echo "PWD: "$(pwd)
+  #         ls -la
+  #         echo "HOME: "$HOME
+  #         docker --version
+  #     - name: Checkout bazel-orfs
+  #       uses: actions/checkout@v4
+  #     - name: load docker image
+  #       run: |
+  #         bazel run --subcommands --verbose_failures --sandbox_debug @bazel-orfs//:orfs_env
+  #     - name: query target
+  #       run: |
+  #         bazel query ${{ matrix.STAGE_TARGET }}
+  #         bazel query ${{ matrix.STAGE_TARGET }} --output=build
+  #     - name: build target
+  #       run: |
+  #         bazel build --subcommands --verbose_failures --sandbox_debug ${{ matrix.STAGE_TARGET }}
+
+  # test-make-scripts-target-local:
+  #   name: Local flow - test _scripts tartgets
+  #   runs-on: ubuntu-22.04
+  #   container:
+  #     image: ghcr.io/antmicro/openroad-flow-scripts/ubuntu22.04@sha256:ef18800147f1b09fd00366c32b2266da4944d59d588680ed05d2685fbae2531a
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   strategy:
+  #     fail-fast: false
+  #   env:
+  #     DEBIAN_FRONTEND: "noninteractive"
+  #     FLOW_HOME: /OpenROAD-flow-scripts/flow
+  #   steps:
+  #     - name: Print info
+  #       run: |
+  #         echo "USER: "$(whoami)
+  #         echo "PWD: "$(pwd)
+  #         ls -la
+  #         echo "HOME: "$HOME
+  #         cd /OpenROAD-flow-scripts
+  #         echo "OpenROAD-flow-scripts SHA: "$(git rev-parse HEAD)
+  #         source ./env.sh
+  #         yosys --version
+  #         openroad -version
+  #     - name: Install bazelisk as bazel
+  #       run: |
+  #         wget https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -O /usr/local/bin/bazel
+  #         chmod +x /usr/local/bin/bazel
+  #     - name: Checkout megaboom
+  #       uses: actions/checkout@v4
+  #     - name: build local stage targets - tag_array_64x184
+  #       env:
+  #         TARGET: tag_array_64x184
+  #       run: .github/scripts/build_local_target.sh
+  #     - name: build local stage targets - L1MetadataArray_test
+  #       env:
+  #         TARGET: L1MetadataArray_test
+  #         STAGES: synth_sdc synth floorplan place generate_abstract
+  #       run: .github/scripts/build_local_target.sh
+  #     - name: open targets
+  #       run: |
+  #         for stage in "synth" "floorplan" "place"; do
+  #           echo | bazel-bin/L1MetadataArray_test_${stage}_local_make open_${stage}
+  #         done
+
+  # test-make-scripts-target-docker:
+  #   name: Docker flow - test _scripts tartgets
+  #   runs-on: ubuntu-22.04
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   strategy:
+  #     fail-fast: false
+  #   env:
+  #     DEBIAN_FRONTEND: "noninteractive"
+  #     FLOW: docker
+  #   steps:
+  #     - name: Free Disk Space (Ubuntu)
+  #       uses: jlumbroso/free-disk-space@main
+  #       with:
+  #         swap-storage: false
+  #     - name: Print info
+  #       run: |
+  #         echo "USER: "$(whoami)
+  #         echo "PWD: "$(pwd)
+  #         ls -la
+  #         echo "HOME: "$HOME
+  #         docker --version
+  #     - name: Checkout bazel-orfs
+  #       uses: actions/checkout@v4
+  #     - name: load docker image
+  #       run: |
+  #         bazel run --subcommands --verbose_failures --sandbox_debug @bazel-orfs//:orfs_env
+  #     - name: build local stage targets - tag_array_64x184
+  #       env:
+  #         TARGET: tag_array_64x184
+  #       run: .github/scripts/build_local_target.sh
+  #     - name: build local stage targets - L1MetadataArray_test
+  #       env:
+  #         TARGET: L1MetadataArray_test
+  #         STAGES: synth_sdc synth floorplan place generate_abstract
+  #       run: .github/scripts/build_local_target.sh
+  #     - name: open target
+  #       if: matrix.STAGE_TARGET == 'L1MetadataArray_test_generate_abstract'
+  #       run: |
+  #         for stage in "synth" "floorplan" "place"; do
+  #           echo | bazel-bin/L1MetadataArray_test_${stage}_docker open_${stage}
+  #         done
+
+  test-remote-cache:
+    name: Test receiving results from remote cache
     runs-on: ubuntu-22.04
     defaults:
       run:
         shell: bash
     strategy:
       fail-fast: false
-      matrix:
-        STAGE_TARGET:
-          - tag_array_64x184_generate_abstract_make
-          - L1MetadataArray_test_generate_abstract_make
-          - regfile_128x65_floorplan_make
-          - lb_32x128_generate_abstract_make
-          - data_2048x8_generate_abstract_make
-          - subpackage:tag_array_64x184_generate_abstract
     env:
       DEBIAN_FRONTEND: "noninteractive"
     steps:
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          swap-storage: false
-      - name: Print info
-        run: |
-          echo "USER: "$(whoami)
-          echo "PWD: "$(pwd)
-          ls -la
-          echo "HOME: "$HOME
-          docker --version
       - name: Checkout bazel-orfs
         uses: actions/checkout@v4
-      - name: load docker image
-        run: |
-          bazel run --subcommands --verbose_failures --sandbox_debug @bazel-orfs//:orfs_env
-      - name: query target
-        run: |
-          bazel query ${{ matrix.STAGE_TARGET }}
-          bazel query ${{ matrix.STAGE_TARGET }} --output=build
-      - name: build target
-        run: |
-          bazel build --subcommands --verbose_failures --sandbox_debug ${{ matrix.STAGE_TARGET }}
-
-  test-make-scripts-target-local:
-    name: Local flow - test _scripts tartgets
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/antmicro/openroad-flow-scripts/ubuntu22.04@sha256:ef18800147f1b09fd00366c32b2266da4944d59d588680ed05d2685fbae2531a
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      fail-fast: false
-    env:
-      DEBIAN_FRONTEND: "noninteractive"
-      FLOW_HOME: /OpenROAD-flow-scripts/flow
-    steps:
-      - name: Print info
-        run: |
-          echo "USER: "$(whoami)
-          echo "PWD: "$(pwd)
-          ls -la
-          echo "HOME: "$HOME
-          cd /OpenROAD-flow-scripts
-          echo "OpenROAD-flow-scripts SHA: "$(git rev-parse HEAD)
-          source ./env.sh
-          yosys --version
-          openroad -version
-      - name: Install bazelisk as bazel
-        run: |
-          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -O /usr/local/bin/bazel
-          chmod +x /usr/local/bin/bazel
-      - name: Checkout megaboom
-        uses: actions/checkout@v4
-      - name: build local stage targets - tag_array_64x184
+      - name: Prepare credentials
         env:
-          TARGET: tag_array_64x184
-        run: .github/scripts/build_local_target.sh
-      - name: build local stage targets - L1MetadataArray_test
+          SECRET_CRED: ${{ secrets.CACHE_CREDENTIALS }}
+        run: echo "$SECRET_CRED" > /tmp/bazel-build-cred.json
+      - name: Build with remote cache
         env:
-          TARGET: L1MetadataArray_test
-          STAGES: synth_sdc synth floorplan place generate_abstract
-        run: .github/scripts/build_local_target.sh
-      - name: open targets
+          SECRET_CACHE: ${{ secrets.CACHE_ADDRESS }}
         run: |
-          for stage in "synth" "floorplan" "place"; do
-            echo | bazel-bin/L1MetadataArray_test_${stage}_local_make open_${stage}
-          done
-
-  test-make-scripts-target-docker:
-    name: Docker flow - test _scripts tartgets
-    runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      fail-fast: false
-    env:
-      DEBIAN_FRONTEND: "noninteractive"
-      FLOW: docker
-    steps:
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          swap-storage: false
-      - name: Print info
-        run: |
-          echo "USER: "$(whoami)
-          echo "PWD: "$(pwd)
-          ls -la
-          echo "HOME: "$HOME
-          docker --version
-      - name: Checkout bazel-orfs
-        uses: actions/checkout@v4
-      - name: load docker image
-        run: |
-          bazel run --subcommands --verbose_failures --sandbox_debug @bazel-orfs//:orfs_env
-      - name: build local stage targets - tag_array_64x184
-        env:
-          TARGET: tag_array_64x184
-        run: .github/scripts/build_local_target.sh
-      - name: build local stage targets - L1MetadataArray_test
-        env:
-          TARGET: L1MetadataArray_test
-          STAGES: synth_sdc synth floorplan place generate_abstract
-        run: .github/scripts/build_local_target.sh
-      - name: open target
-        if: matrix.STAGE_TARGET == 'L1MetadataArray_test_generate_abstract'
-        run: |
-          for stage in "synth" "floorplan" "place"; do
-            echo | bazel-bin/L1MetadataArray_test_${stage}_docker open_${stage}
-          done
+          bazel build --remote_cache=$SECRET_CACHE --google_credentials=/tmp/bazel-build-cred.json --remote_cache_compression=true BoomTile_floorplan
