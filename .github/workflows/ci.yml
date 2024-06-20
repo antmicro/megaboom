@@ -165,6 +165,8 @@ jobs:
         - /usr/share/dotnet:/usr/share/dotnet
         - /usr/local/lib/android:/usr/local/lib/android
         - /opt/ghc:/opt/ghc
+        - /root/.cache:/root/.cache
+        - /__w/megaboom:/__w/megaboom
     defaults:
       run:
         shell: bash
@@ -182,6 +184,11 @@ jobs:
           rm -rf /opt/ghc/*
           echo "After cleanup"
           df -H
+        # Workaround for https://github.com/actions/runner/issues/863
+      - name: Override HOME env var
+        shell: bash
+        run: |
+          echo HOME=/root | tee -a $GITHUB_ENV
       - name: Check docker.sock
         run: ls -l /var/run/docker.sock
       - name: Install docker
@@ -192,6 +199,10 @@ jobs:
         run: docker info
       - name: Checkout bazel-orfs
         uses: actions/checkout@v4
+      - name: CH
+        run: |
+          pwd
+          ls
       - name: Install bazelisk as bazel
         run: |
           wget https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -O /usr/local/bin/bazel
@@ -206,4 +217,4 @@ jobs:
         env:
           SECRET_CACHE: ${{ secrets.CACHE_ADDRESS }}
         run: |
-          bazel build --remote_cache=$SECRET_CACHE --google_credentials=/tmp/bazel-build-cred.json --remote_cache_compression=true BoomTile_synth
+          bazel build --subcommands --verbose_failures tag_array_64x184_place  # --remote_cache=$SECRET_CACHE --google_credentials=/tmp/bazel-build-cred.json --remote_cache_compression=true
