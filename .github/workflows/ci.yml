@@ -188,14 +188,8 @@ jobs:
         run: |
           apt-get update
           apt-get install -y docker.io wget curl gcc uuid-runtime git xauth
-      - name: Add group permissions
-        run: |
-          groupadd --gid $(ls -ln /var/run/docker.sock | cut -d\  -f4) dind
-          usermod --append --groups dind $(whoami)
       - name: Test docker
-        run: |
-          id
-          docker info
+        run: docker info
       - name: Checkout bazel-orfs
         uses: actions/checkout@v4
       - name: Install bazelisk as bazel
