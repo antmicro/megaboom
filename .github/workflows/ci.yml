@@ -159,6 +159,12 @@ jobs:
   test-remote-cache:
     name: Test receiving results from remote cache
     runs-on: ubuntu-22.04
+    container:
+      image: debian:latest
+      volumes:
+        - /usr/share/dotnet:/usr/share/dotnet
+        - /usr/local/lib/android:/usr/local/lib/android
+        - /opt/ghc:/opt/ghc
     defaults:
       run:
         shell: bash
@@ -167,12 +173,35 @@ jobs:
     env:
       DEBIAN_FRONTEND: "noninteractive"
     steps:
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          swap-storage: false
+      - name: Increase free space
+        run: |
+          echo "Before cleanup"
+          df -H
+          rm -rf /usr/share/dotnet/*
+          rm -rf /usr/local/lib/android/*
+          rm -rf /opt/ghc/*
+          echo "After cleanup"
+          df -H
+      - name: Check docker.sock
+        run: ls -l /var/run/docker.sock
+      - name: Install docker
+        run: |
+          apt-get update
+          apt-get install -y docker.io wget curl gcc uuid-runtime git xauth
+      - name: Add group permissions
+        run: |
+          groupadd --gid $(ls -ln /var/run/docker.sock | cut -d\  -f4) dind
+          usermod --append --groups dind $(whoami)
+      - name: Test docker
+        run: |
+          id
+          docker info
       - name: Checkout bazel-orfs
         uses: actions/checkout@v4
+      - name: Install bazelisk as bazel
+        run: |
+          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -O /usr/local/bin/bazel
+          chmod +x /usr/local/bin/bazel
       - name: Load docker image
         run: bazel run --subcommands --verbose_failures @bazel-orfs//:orfs_env
       - name: Prepare credentials
