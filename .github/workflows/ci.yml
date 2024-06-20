@@ -165,7 +165,7 @@ jobs:
         - /usr/share/dotnet:/usr/share/dotnet
         - /usr/local/lib/android:/usr/local/lib/android
         - /opt/ghc:/opt/ghc
-        - /root/.cache:/root/.cache
+        - /github/home/.cache:/github/home/.cache
         - /__w/megaboom:/__w/megaboom
     defaults:
       run:
@@ -184,11 +184,11 @@ jobs:
           rm -rf /opt/ghc/*
           echo "After cleanup"
           df -H
-        # Workaround for https://github.com/actions/runner/issues/863
-      - name: Override HOME env var
-        shell: bash
-        run: |
-          echo HOME=/root | tee -a $GITHUB_ENV
+      # # Workaround for https://github.com/actions/runner/issues/863
+      # - name: Override HOME env var
+      #   shell: bash
+      #   run: |
+      #     echo HOME=/root | tee -a $GITHUB_ENV
       - name: Check docker.sock
         run: ls -l /var/run/docker.sock
       - name: Install docker
