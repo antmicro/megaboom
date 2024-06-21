@@ -745,7 +745,6 @@ digital_top_srams=[
                 'SKIP_REPORT_METRICS=1']
         },
         abstract_stage='cts',
-        debug_prints=True,
         mock_area={
         'meta_40x240':0.3,
         'data_data_40x128':1,
