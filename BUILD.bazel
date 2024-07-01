@@ -1,7 +1,6 @@
 load("@bazel-orfs//:openroad.bzl", "build_openroad", "add_options_all_stages", "create_out_rule")
+load("//:variables.bzl", "ORFS_VERSION")
 create_out_rule()
-
-orfs_version = "openroad/orfs:41e7d95599c733b8c6a4bfba39440daed8cb5923"
 
 filegroup(
     name = "util",
@@ -529,7 +528,7 @@ exeunitsrc =  [ "rtl/ALU.sv",
         "rtl/RoundAnyRawFNToRecFN_1.sv"]
 
 [build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = exe,
         verilog_files=["rtl/" + exe + ".sv"] + exeunitsrc,
 		sdc_constraints = ":constraints.sdc",
@@ -595,7 +594,7 @@ fpfiles = ["rtl/FpPipeline.sv",
         "rtl/RoundAnyRawFNToRecFN_3.sv"]
 
 build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = "FpPipeline",
         verilog_files=fpfiles,
         macros=["regfile_128x65"],
@@ -629,7 +628,7 @@ registerreadsrc = ["rtl/RegisterRead_1.sv",
         ]
 
 build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = "RegisterRead_1",
         verilog_files=registerreadsrc,
         sdc_constraints = ":constraints.sdc",
@@ -642,7 +641,7 @@ issueslotfiles = ["rtl/IssueUnitCollapsing_1.sv", "rtl/IssueUnitCollapsing_2.sv"
         "rtl/IssueSlot_32.sv"]
 
 [build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = exe,
         verilog_files=issueslotfiles,
         sdc_constraints = ":constraints.sdc",
@@ -653,7 +652,7 @@ issueslotfiles = ["rtl/IssueUnitCollapsing_1.sv", "rtl/IssueUnitCollapsing_2.sv"
 
 
 build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = "Rob",
         verilog_files=["rtl/Rob.sv"],
         sdc_constraints = ":constraints.sdc",
@@ -662,7 +661,7 @@ build_openroad(
         )
 
 build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = "DecodeUnit",
         verilog_files=["rtl/DecodeUnit.sv"],
         sdc_constraints = ":constraints.sdc",
@@ -672,7 +671,7 @@ build_openroad(
         )
 
 build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = "BoomCore",
         verilog_files=["rtl/BoomCore.sv",
         "rtl/Arbiter_18.sv",
@@ -732,7 +731,7 @@ digital_top_srams=[
 
 
 [build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = ram,
         io_constraints=":io-sram",
         verilog_files=[{'array_256x128':'mock',
@@ -768,7 +767,7 @@ digital_top_srams=[
 big_rams = ['mem_8192x64', 'cc_banks_16384x64', 'TLROM', 'ghist_40x72']
 
 [build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = ram,
         io_constraints=":io-sram",
         sdc_constraints = ":constraints-sram",
@@ -782,7 +781,7 @@ big_rams = ['mem_8192x64', 'cc_banks_16384x64', 'TLROM', 'ghist_40x72']
         ) for ram in big_rams if ram != 'TLROM']
 
 build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = "TLROM",
         io_constraints=":io",
         verilog_files=["rtl/TLROM.sv",
@@ -802,7 +801,7 @@ boom_regfile_rams = [
         "regfile_128x65"]
 
 [build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = ram,
         io_constraints=":io-sram",
         verilog_files=["mock/" + ram + ".sv"],
@@ -824,7 +823,7 @@ boom_regfile_rams = [
  for ram in boom_regfile_rams]
 
 build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = "L1MetadataArray",
         verilog_files=["rtl/L1MetadataArray.sv"],
         variant="test",
@@ -844,7 +843,7 @@ build_openroad(
         )
 
 build_openroad(
-        docker_image = orfs_version,
+        docker_image = ORFS_VERSION,
         name = "BoomTile",
         verilog_files=all_source_files,
         macros=boom_tile_rams + boom_regfile_rams + boom_tile_small_srams + digital_top_srams,

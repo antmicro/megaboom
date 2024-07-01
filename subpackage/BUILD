@@ -1,7 +1,9 @@
 load("@bazel-orfs//:openroad.bzl", "build_openroad")
+load("//:variables.bzl", "ORFS_VERSION")
 
 build_openroad(
     name = "tag_array_64x184",
+    docker_image = ORFS_VERSION,
     io_constraints = "//:io-sram",
     abstract_stage = "floorplan",
     sdc_constraints = "//:constraints-sram",
