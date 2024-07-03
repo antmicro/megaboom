@@ -55,9 +55,6 @@ jobs:
           docker --version
       - name: Checkout bazel-orfs
         uses: actions/checkout@v4
-      - name: load docker image
-        run: |
-          bazel run --subcommands --verbose_failures --sandbox_debug @bazel-orfs//:orfs_env
       - name: query target
         run: |
           bazel query ${{ matrix.STAGE_TARGET }}
@@ -70,7 +67,7 @@ jobs:
     name: Local flow - test _scripts tartgets
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/antmicro/openroad-flow-scripts/ubuntu22.04@sha256:ef18800147f1b09fd00366c32b2266da4944d59d588680ed05d2685fbae2531a
+      image: openroad/orfs:41e7d95599c733b8c6a4bfba39440daed8cb5923
     defaults:
       run:
         shell: bash
@@ -137,9 +134,6 @@ jobs:
           docker --version
       - name: Checkout bazel-orfs
         uses: actions/checkout@v4
-      - name: load docker image
-        run: |
-          bazel run --subcommands --verbose_failures --sandbox_debug @bazel-orfs//:orfs_env
       - name: build local stage targets - tag_array_64x184
         env:
           TARGET: tag_array_64x184
