@@ -23,6 +23,18 @@ jobs:
         run: |
           buildifier -lint warn -r .
 
+  generate-config:
+    name: Generate configs
+    runs-on: ubuntu-latest
+    outputs:
+      docker-tag: ${{ steps.docker-image.outputs.docker-orfs }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - id: docker-image
+        run: echo "docker-orfs=$(python3 .github/scripts/extract_docker_revision.py MODULE.bazel.lock)" | tee -a $GITHUB_OUTPUT
+
   test-make-target:
     name: ${{ matrix.STAGE_TARGET }}
     runs-on: ubuntu-22.04
@@ -68,17 +80,15 @@ jobs:
         run: |
           bazel run --subcommands --verbose_failures --sandbox_debug ${{ matrix.STAGE_TARGET }} -- `pwd`/build
 
-
   test-target-local:
     name: Local flow - test targets
     runs-on: ubuntu-22.04
+    needs: generate-config
     container:
-      image: openroad/orfs:v3.0-1022-g69767b6a@sha256:adc74e5343a7638919f747eb74cbc67b5b71b18d9012608fef912ccee534c458
+      image: ${{ fromJSON(needs.generate-config.outputs.docker-tag).image }}
     defaults:
       run:
         shell: bash
-    strategy:
-      fail-fast: false
     env:
       DEBIAN_FRONTEND: "noninteractive"
       FLOW_HOME: /OpenROAD-flow-scripts/flow
@@ -121,8 +131,6 @@ jobs:
     defaults:
       run:
         shell: bash
-    strategy:
-      fail-fast: false
     env:
       DEBIAN_FRONTEND: "noninteractive"
     steps:
@@ -149,7 +157,6 @@ jobs:
           STAGES: synth floorplan place
         run: .github/scripts/build_local_target.sh
       - name: Open target
-        if: matrix.STAGE_TARGET == 'L1MetadataArray_generate_abstract'
         run: |
           for stage in "floorplan" "place"; do
             echo | build/make open_${stage}
